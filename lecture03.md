@@ -1,4 +1,5 @@
 # 第3回課題
+![APP-HOME](image-7.png)![APP](image-6.png)
 ## 1.APサーバーについて調べる
 ### AP サーバーの名前とバージョン
 - Puma 6.4.2 ![AP-name,ver](image-1.png)
@@ -6,7 +7,7 @@
 - できない ![AP-stop](image-2.png)
 ## 2.DBサーバーについて調べる
 ### DB サーバー（DB エンジン）の名前とバージョン
-- Mysql 8.4.4 ![DB-name,ver](image.png)
+- MySQL 8.4.4 ![DB-name,ver](image.png)
 ### DB サーバーを終了させた場合、引き続きアクセスできますか
 - できない ![DB-stop](image-3.png)
 ### Rails の構成管理ツールの名前は何でしたか
