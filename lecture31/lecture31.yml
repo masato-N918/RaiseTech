@@ -1,0 +1,240 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: lecture27-template
+
+Resources:
+  myvpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: myvpc
+  
+  myigw:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: myigw
+  
+  # IGWをVPCにアタッチ
+  attachmentgw:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref myvpc
+      InternetGatewayId: !Ref myigw
+  
+  mypubsub:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: ap-northeast-1a
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref myvpc
+      CidrBlock: 10.0.1.0/24
+      Tags:
+        - Value: mypubsub
+          Key: Name
+  
+  mypubsub1c:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: ap-northeast-1c
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref myvpc
+      CidrBlock: 10.0.2.0/24
+      Tags:
+        - Value: mypubsub1c
+          Key: Name
+
+  mypubsubRT:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref myvpc
+      Tags:
+        - Value: mypubsub-a-RT
+          Key: Name
+  
+  myroute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref mypubsubRT
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref myigw
+  
+  #  ルートテーブルをサブネットに関連付け
+  AssociationmypubsubRT:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref mypubsubRT
+      SubnetId: !Ref mypubsub
+  
+  Associationmypubsub1cRT:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref mypubsubRT
+      SubnetId: !Ref mypubsub1c
+  
+  myEC2sg:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow SSH, HTTP, and custom port
+      VpcId: !Ref myvpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Value: myEC2sg
+          Key: Name
+  
+  myRDSsg:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: myrds-sg
+      VpcId: !Ref myvpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          SourceSecurityGroupId: !Ref myEC2sg
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Value: myRDSsg
+          Key: Name
+  
+  myEC2:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      SubnetId: !Ref mypubsub
+      KeyName: udemysample
+      DisableApiTermination: false
+      InstanceInitiatedShutdownBehavior: stop
+      Monitoring: false
+      ImageId: !Sub "resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
+      SecurityGroupIds:
+        - !Ref myEC2sg
+      Tags:
+        - Value: myEC2
+          Key: Name
+  
+  mydbsubnetgroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: created from rds management console
+      SubnetIds:
+        - !Ref mypubsub
+        - !Ref mypubsub1c
+
+  myRDS:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: 20
+      AllowMajorVersionUpgrade: false
+      AutoMinorVersionUpgrade: true
+      DBInstanceClass: db.t4g.micro
+      Port: 3306
+      StorageType: gp2
+      BackupRetentionPeriod: 1
+      MasterUsername: root
+      MasterUserPassword: rootroot
+      PreferredBackupWindow: 15:00-16:00
+      PreferredMaintenanceWindow: sun:18:00-sun:19:00
+      DBName: awsstudy
+      Engine: mysql
+      EngineVersion: 8.0.41
+      LicenseModel: general-public-license
+      DBSubnetGroupName: !Ref mydbsubnetgroup
+      VPCSecurityGroups:
+        - !Ref myRDSsg
+      Tags:
+        - Key: Name
+          Value: myrds
+
+  myelb:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: myelb
+      SecurityGroups:
+        - !Ref myEC2sg
+      Subnets:
+        - !Ref mypubsub
+        - !Ref mypubsub1c
+      Tags:
+        - Key: Name
+          Value: myelb
+  
+  myelbTG:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: myelbTG
+      Port: 80
+      Protocol: HTTP
+      VpcId: !Ref myvpc
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 2
+      HealthCheckTimeoutSeconds: 5
+      HealthCheckProtocol: HTTP
+      HealthCheckPath: "/"
+      HealthCheckPort: "traffic-port"
+      HealthCheckIntervalSeconds: 10
+      Matcher:
+        HttpCode: 200
+      Tags:
+        - Value: myelbTG
+          Key: Name
+      Targets:
+        - Id: !Ref myEC2
+          Port: 8080
+  
+  myelblistener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref myelb
+      DefaultActions:
+        - TargetGroupArn: !Ref myelbTG
+          Type: forward
+      Port: 80
+      Protocol: HTTP
+
+  CPUAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: aws-study-ec2-utilization-alarm 
+      AlarmDescription: "EC2使用率が3%以上になりました"
+
+      Namespace: "AWS/EC2"
+      Dimensions: 
+        - Name: "Instanceid"
+          Value: !Ref myEC2
+      MetricName: "CPUUtilization"
+      Unit: "Percent"
+
+      Period: 300
+      Statistic: "Average"
+      
+      Threshold: 3
+      ComparisonOperator:  GreaterThanThreshold
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 2
+      TreatMissingData: "missing"
+
+      ActionsEnabled: true
+      AlarmActions: 
+        - ar
