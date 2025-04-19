@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: lecture27-template
+Description: lecture31-template
 
 Resources:
   myvpc:
@@ -237,4 +237,58 @@ Resources:
 
       ActionsEnabled: true
       AlarmActions: 
-        - ar
+        - arn:aws:sns:ap-northeast-1:302263062504:aws-study
+
+  #WAFをALBに設定
+  WAF:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      Name: WebACL
+      Scope: REGIONAL
+      VisibilityConfig:
+        MetricName: WAFmetric
+        SampledRequestsEnabled: true 
+        CloudWatchMetricsEnabled: true
+      DefaultAction:
+        Allow: {}
+      Rules:
+        - Name: Coreruleset
+          Priority: 0
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesCommonRuleSet
+          OverrideAction:
+            None: {}
+          VisibilityConfig:
+            MetricName: corerule
+            SampledRequestsEnabled: true 
+            CloudWatchMetricsEnabled: true
+     #ResourceArn に指定できるのは以下のリソースのみ
+       #ALB（Application Load Balancer）,API Gateway,#AppSync GraphQL API
+     #LoadBalancerArn は ALB の実際の ARN を返す属性名
+  WAFAssociation:
+    Type: AWS::WAFv2::WebACLAssociation
+    Properties:
+      ResourceArn: !GetAtt myelb.LoadBalancerArn
+      WebACLArn: !GetAtt WAF.Arn
+
+  #WAFのトラフィックをCloudWatchLogと連携
+  WAFlogCofig:
+    Type: AWS::WAFv2::LoggingConfiguration
+    Properties:
+      ResourceArn: !GetAtt WAF.Arn
+      LogDestinationConfigs:
+        - !GetAtt WAFlogGroup.Arn
+  
+  WAFlogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: aws-waf-logs-aws-study
+      RetentionInDays: 14
+      Tags:
+        - Key: Name
+          Value: WAF-log
+
+  
+  
