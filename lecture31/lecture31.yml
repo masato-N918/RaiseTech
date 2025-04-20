@@ -85,7 +85,7 @@ Resources:
         - IpProtocol: tcp
           FromPort: 22
           ToPort: 22
-          CidrIp: 0.0.0.0/0
+          CidrIp: 143.189.176.201/32
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
@@ -213,34 +213,30 @@ Resources:
       Port: 80
       Protocol: HTTP
 
-  CPUAlarm:
+  myCPUAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: aws-study-ec2-utilization-alarm 
       AlarmDescription: "EC2使用率が3%以上になりました"
-
       Namespace: "AWS/EC2"
       Dimensions: 
-        - Name: "Instanceid"
+        - Name: "InstanceId"
           Value: !Ref myEC2
       MetricName: "CPUUtilization"
       Unit: "Percent"
-
       Period: 300
       Statistic: "Average"
-      
       Threshold: 3
       ComparisonOperator:  GreaterThanThreshold
       EvaluationPeriods: 3
       DatapointsToAlarm: 2
       TreatMissingData: "missing"
-
       ActionsEnabled: true
       AlarmActions: 
         - arn:aws:sns:ap-northeast-1:302263062504:aws-study
 
   #WAFをALBに設定
-  WAF:
+  myWAF:
     Type: AWS::WAFv2::WebACL
     Properties:
       Name: WebACL
@@ -271,17 +267,17 @@ Resources:
     Type: AWS::WAFv2::WebACLAssociation
     Properties:
       ResourceArn: !GetAtt myelb.LoadBalancerArn
-      WebACLArn: !GetAtt WAF.Arn
+      WebACLArn: !GetAtt myWAF.Arn
 
   #WAFのトラフィックをCloudWatchLogと連携
-  WAFlogCofig:
+  myWAFlogCofig:
     Type: AWS::WAFv2::LoggingConfiguration
     Properties:
-      ResourceArn: !GetAtt WAF.Arn
+      ResourceArn: !GetAtt myWAF.Arn
       LogDestinationConfigs:
-        - !GetAtt WAFlogGroup.Arn
+        - !GetAtt myWAFlogGroup.Arn
   
-  WAFlogGroup:
+  myWAFlogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: aws-waf-logs-aws-study
@@ -289,6 +285,3 @@ Resources:
       Tags:
         - Key: Name
           Value: WAF-log
-
-  
-  
