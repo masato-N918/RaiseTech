@@ -26,7 +26,7 @@ Resources:
       VpcId: !Ref MyVPC
       InternetGatewayId: !Ref MyIGW
   
-  MyPubSub:
+  MyPubSub1a:
     Type: AWS::EC2::Subnet
     Properties:
       AvailabilityZone: ap-northeast-1a
@@ -35,9 +35,8 @@ Resources:
       CidrBlock: 10.0.1.0/24
       Tags:
         - Key: Name
-          Value: MyPubSub
+          Value: MyPubSub1a
           
-  
   MyPubSub1c:
     Type: AWS::EC2::Subnet
     Properties:
@@ -47,8 +46,7 @@ Resources:
       CidrBlock: 10.0.2.0/24
       Tags:
         - Key: Name
-          Value: MyPubSub1c
-          
+          Value: MyPubSub1c     
 
   MyPubSubRT:
     Type: AWS::EC2::RouteTable
@@ -56,9 +54,8 @@ Resources:
       VpcId: !Ref MyVPC
       Tags:
         - Key: Name
-          Value: MyPubSub-a-RT
+          Value: MyPubSubRT
           
-  
   MyRoute:
     Type: AWS::EC2::Route
     Properties:
@@ -67,11 +64,11 @@ Resources:
       GatewayId: !Ref MyIGW
   
   #  ルートテーブルをサブネットに関連付け
-  AssociationMyPubSubRT:
+  AssociationMyPubSub1aRT:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       RouteTableId: !Ref MyPubSubRT
-      SubnetId: !Ref MyPubSub
+      SubnetId: !Ref MyPubSub1a
   
   AssociationMyPubSub1cRT:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -125,7 +122,7 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: t2.micro
-      SubnetId: !Ref MyPubSub
+      SubnetId: !Ref MyPubSub1a
       KeyName: udemysample
       DisableApiTermination: false
       InstanceInitiatedShutdownBehavior: stop
@@ -142,7 +139,7 @@ Resources:
     Properties:
       DBSubnetGroupDescription: created from rds management console
       SubnetIds:
-        - !Ref MyPubSub
+        - !Ref MyPubSub1a
         - !Ref MyPubSub1c
 
   MyRDS:
@@ -177,7 +174,7 @@ Resources:
       SecurityGroups:
         - !Ref MyEC2SG
       Subnets:
-        - !Ref MyPubSub
+        - !Ref MyPubSub1a
         - !Ref MyPubSub1c
       Tags:
         - Key: Name
