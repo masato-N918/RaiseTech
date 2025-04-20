@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: lecture31-template
 
 Resources:
-  myvpc:
+  MyVPC:
     Type: AWS::EC2::VPC
     Properties:
       CidrBlock: 10.0.0.0/16
@@ -10,77 +10,80 @@ Resources:
       EnableDnsHostnames: true
       Tags:
         - Key: Name
-          Value: myvpc
+          Value: MyVPC
   
-  myigw:
+  MyIGW:
     Type: AWS::EC2::InternetGateway
     Properties:
       Tags:
         - Key: Name
-          Value: myigw
+          Value: MyIGW
   
   # IGWをVPCにアタッチ
-  attachmentgw:
+  AttachmentMyIGW:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
-      VpcId: !Ref myvpc
-      InternetGatewayId: !Ref myigw
+      VpcId: !Ref MyVPC
+      InternetGatewayId: !Ref MyIGW
   
-  mypubsub:
+  MyPubSub:
     Type: AWS::EC2::Subnet
     Properties:
       AvailabilityZone: ap-northeast-1a
       MapPublicIpOnLaunch: true
-      VpcId: !Ref myvpc
+      VpcId: !Ref MyVPC
       CidrBlock: 10.0.1.0/24
       Tags:
-        - Value: mypubsub
-          Key: Name
+        - Key: Name
+          Value: MyPubSub
+          
   
-  mypubsub1c:
+  MyPubSub1c:
     Type: AWS::EC2::Subnet
     Properties:
       AvailabilityZone: ap-northeast-1c
       MapPublicIpOnLaunch: true
-      VpcId: !Ref myvpc
+      VpcId: !Ref MyVPC
       CidrBlock: 10.0.2.0/24
       Tags:
-        - Value: mypubsub1c
-          Key: Name
+        - Key: Name
+          Value: MyPubSub1c
+          
 
-  mypubsubRT:
+  MyPubSubRT:
     Type: AWS::EC2::RouteTable
     Properties:
-      VpcId: !Ref myvpc
+      VpcId: !Ref MyVPC
       Tags:
-        - Value: mypubsub-a-RT
-          Key: Name
+        - Key: Name
+          Value: MyPubSub-a-RT
+          
   
-  myroute:
+  MyRoute:
     Type: AWS::EC2::Route
     Properties:
-      RouteTableId: !Ref mypubsubRT
+      RouteTableId: !Ref MyPubSubRT
       DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref myigw
+      GatewayId: !Ref MyIGW
   
   #  ルートテーブルをサブネットに関連付け
-  AssociationmypubsubRT:
+  AssociationMyPubSubRT:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: !Ref mypubsubRT
-      SubnetId: !Ref mypubsub
+      RouteTableId: !Ref MyPubSubRT
+      SubnetId: !Ref MyPubSub
   
-  Associationmypubsub1cRT:
+  AssociationMyPubSub1cRT:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: !Ref mypubsubRT
-      SubnetId: !Ref mypubsub1c
+      RouteTableId: !Ref MyPubSubRT
+      SubnetId: !Ref MyPubSub1c
   
-  myEC2sg:
+  MyEC2SG:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow SSH, HTTP, and custom port
-      VpcId: !Ref myvpc
+      VpcId: !Ref MyVPC
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 22
@@ -98,51 +101,51 @@ Resources:
         - IpProtocol: -1
           CidrIp: 0.0.0.0/0
       Tags:
-        - Value: myEC2sg
-          Key: Name
-  
-  myRDSsg:
+        - Key: Name
+          Value: MyEC2SG
+          
+  MyRDSSG:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: myrds-sg
-      VpcId: !Ref myvpc
+      GroupDescription: MyRDS-SG
+      VpcId: !Ref MyVPC
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 3306
           ToPort: 3306
-          SourceSecurityGroupId: !Ref myEC2sg
+          SourceSecurityGroupId: !Ref MyEC2SG
       SecurityGroupEgress:
         - IpProtocol: -1
           CidrIp: 0.0.0.0/0
       Tags:
-        - Value: myRDSsg
-          Key: Name
-  
-  myEC2:
+        - Key: Name
+          Value: MyRDSSG
+          
+  MyEC2:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: t2.micro
-      SubnetId: !Ref mypubsub
+      SubnetId: !Ref MyPubSub
       KeyName: udemysample
       DisableApiTermination: false
       InstanceInitiatedShutdownBehavior: stop
       Monitoring: false
       ImageId: !Sub "resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
       SecurityGroupIds:
-        - !Ref myEC2sg
+        - !Ref MyEC2SG
       Tags:
-        - Value: myEC2
-          Key: Name
+        - Key: Name
+          Value: MyEC2
   
-  mydbsubnetgroup:
+  MyRDSSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
       DBSubnetGroupDescription: created from rds management console
       SubnetIds:
-        - !Ref mypubsub
-        - !Ref mypubsub1c
+        - !Ref MyPubSub
+        - !Ref MyPubSub1c
 
-  myRDS:
+  MyRDS:
     Type: AWS::RDS::DBInstance
     Properties:
       AllocatedStorage: 20
@@ -160,33 +163,33 @@ Resources:
       Engine: mysql
       EngineVersion: 8.0.41
       LicenseModel: general-public-license
-      DBSubnetGroupName: !Ref mydbsubnetgroup
+      DBSubnetGroupName: !Ref MyRDSSubnetGroup
       VPCSecurityGroups:
-        - !Ref myRDSsg
+        - !Ref MyRDSSG
       Tags:
         - Key: Name
-          Value: myrds
+          Value: MyRDS
 
-  myelb:
+  MyELB:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      Name: myelb
+      Name: MyELB
       SecurityGroups:
-        - !Ref myEC2sg
+        - !Ref MyEC2SG
       Subnets:
-        - !Ref mypubsub
-        - !Ref mypubsub1c
+        - !Ref MyPubSub
+        - !Ref MyPubSub1c
       Tags:
         - Key: Name
-          Value: myelb
+          Value: MyELB
   
-  myelbTG:
+  MyELBTG:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Name: myelbTG
+      Name: MyELBTG
       Port: 80
       Protocol: HTTP
-      VpcId: !Ref myvpc
+      VpcId: !Ref MyVPC
       HealthyThresholdCount: 2
       UnhealthyThresholdCount: 2
       HealthCheckTimeoutSeconds: 5
@@ -197,23 +200,23 @@ Resources:
       Matcher:
         HttpCode: 200
       Tags:
-        - Value: myelbTG
-          Key: Name
+        - Key: Name
+          Value: MyELBTG
       Targets:
-        - Id: !Ref myEC2
+        - Id: !Ref MyEC2
           Port: 8080
   
-  myelblistener:
+  MyELBListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
-      LoadBalancerArn: !Ref myelb
+      LoadBalancerArn: !Ref MyELB
       DefaultActions:
-        - TargetGroupArn: !Ref myelbTG
+        - TargetGroupArn: !Ref MyELBTG
           Type: forward
       Port: 80
       Protocol: HTTP
 
-  myCPUAlarm:
+  MyCPUAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: aws-study-ec2-utilization-alarm 
@@ -221,7 +224,7 @@ Resources:
       Namespace: "AWS/EC2"
       Dimensions: 
         - Name: "InstanceId"
-          Value: !Ref myEC2
+          Value: !Ref MyEC2
       MetricName: "CPUUtilization"
       Unit: "Percent"
       Period: 300
@@ -236,7 +239,7 @@ Resources:
         - arn:aws:sns:ap-northeast-1:302263062504:aws-study
 
   #WAFをALBに設定
-  myWAF:
+  MyWAF:
     Type: AWS::WAFv2::WebACL
     Properties:
       Name: WebACL
@@ -263,25 +266,25 @@ Resources:
      #ResourceArn に指定できるのは以下のリソースのみ
        #ALB（Application Load Balancer）,API Gateway,#AppSync GraphQL API
      #LoadBalancerArn は ALB の実際の ARN を返す属性名
-  WAFAssociation:
+  MyWAFAssociation:
     Type: AWS::WAFv2::WebACLAssociation
     Properties:
-      ResourceArn: !GetAtt myelb.LoadBalancerArn
-      WebACLArn: !GetAtt myWAF.Arn
+      ResourceArn: !GetAtt MyELB.LoadBalancerArn
+      WebACLArn: !GetAtt MyWAF.Arn
 
   #WAFのトラフィックをCloudWatchLogと連携
-  myWAFlogCofig:
+  MyWAFLogConfig:
     Type: AWS::WAFv2::LoggingConfiguration
     Properties:
-      ResourceArn: !GetAtt myWAF.Arn
+      ResourceArn: !GetAtt MyWAF.Arn
       LogDestinationConfigs:
-        - !GetAtt myWAFlogGroup.Arn
+        - !GetAtt MyWAFLogGroup.Arn
   
-  myWAFlogGroup:
+  MyWAFLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: aws-waf-logs-aws-study
       RetentionInDays: 14
       Tags:
         - Key: Name
-          Value: WAF-log
+          Value: MyWAF-Log
