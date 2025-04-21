@@ -1,0 +1,287 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: lecture31-template
+
+Resources:
+  MyVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: MyVPC
+  
+  MyIGW:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: MyIGW
+  
+  # IGWをVPCにアタッチ
+  AttachmentMyIGW:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref MyVPC
+      InternetGatewayId: !Ref MyIGW
+  
+  MyPubSub1a:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: ap-northeast-1a
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref MyVPC
+      CidrBlock: 10.0.1.0/24
+      Tags:
+        - Key: Name
+          Value: MyPubSub1a
+          
+  MyPubSub1c:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: ap-northeast-1c
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref MyVPC
+      CidrBlock: 10.0.2.0/24
+      Tags:
+        - Key: Name
+          Value: MyPubSub1c     
+
+  MyPubSubRT:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPC
+      Tags:
+        - Key: Name
+          Value: MyPubSubRT
+          
+  MyRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref MyPubSubRT
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref MyIGW
+  
+  #  ルートテーブルをサブネットに関連付け
+  AssociationMyPubSub1aRT:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref MyPubSubRT
+      SubnetId: !Ref MyPubSub1a
+  
+  AssociationMyPubSub1cRT:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref MyPubSubRT
+      SubnetId: !Ref MyPubSub1c
+  
+  MyEC2SG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow SSH, HTTP, and custom port
+      VpcId: !Ref MyVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 143.189.176.201/32
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: MyEC2SG
+          
+  MyRDSSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: MyRDS-SG
+      VpcId: !Ref MyVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          SourceSecurityGroupId: !Ref MyEC2SG
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: MyRDSSG
+          
+  MyEC2:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      SubnetId: !Ref MyPubSub1a
+      KeyName: udemysample
+      DisableApiTermination: false
+      InstanceInitiatedShutdownBehavior: stop
+      Monitoring: false
+      ImageId: !Sub "resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
+      SecurityGroupIds:
+        - !Ref MyEC2SG
+      Tags:
+        - Key: Name
+          Value: MyEC2
+  
+  MyRDSSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: created from rds management console
+      SubnetIds:
+        - !Ref MyPubSub1a
+        - !Ref MyPubSub1c
+
+  MyRDS:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: 20
+      AllowMajorVersionUpgrade: false
+      AutoMinorVersionUpgrade: true
+      DBInstanceClass: db.t4g.micro
+      Port: 3306
+      StorageType: gp2
+      BackupRetentionPeriod: 1
+      MasterUsername: root
+      MasterUserPassword: rootroot
+      PreferredBackupWindow: 15:00-16:00
+      PreferredMaintenanceWindow: sun:18:00-sun:19:00
+      DBName: awsstudy
+      Engine: mysql
+      EngineVersion: 8.0.41
+      LicenseModel: general-public-license
+      DBSubnetGroupName: !Ref MyRDSSubnetGroup
+      VPCSecurityGroups:
+        - !Ref MyRDSSG
+      Tags:
+        - Key: Name
+          Value: MyRDS
+
+  MyELB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: MyELB
+      SecurityGroups:
+        - !Ref MyEC2SG
+      Subnets:
+        - !Ref MyPubSub1a
+        - !Ref MyPubSub1c
+      Tags:
+        - Key: Name
+          Value: MyELB
+  
+  MyELBTG:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: MyELBTG
+      Port: 80
+      Protocol: HTTP
+      VpcId: !Ref MyVPC
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 2
+      HealthCheckTimeoutSeconds: 5
+      HealthCheckProtocol: HTTP
+      HealthCheckPath: "/"
+      HealthCheckPort: "traffic-port"
+      HealthCheckIntervalSeconds: 10
+      Matcher:
+        HttpCode: 200
+      Tags:
+        - Key: Name
+          Value: MyELBTG
+      Targets:
+        - Id: !Ref MyEC2
+          Port: 8080
+  
+  MyELBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref MyELB
+      DefaultActions:
+        - TargetGroupArn: !Ref MyELBTG
+          Type: forward
+      Port: 80
+      Protocol: HTTP
+
+  MyCPUAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: aws-study-ec2-utilization-alarm 
+      AlarmDescription: "EC2使用率が3%以上になりました"
+      Namespace: "AWS/EC2"
+      Dimensions: 
+        - Name: "InstanceId"
+          Value: !Ref MyEC2
+      MetricName: "CPUUtilization"
+      Unit: "Percent"
+      Period: 300
+      Statistic: "Average"
+      Threshold: 3
+      ComparisonOperator:  GreaterThanThreshold
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 2
+      TreatMissingData: "missing"
+      ActionsEnabled: true
+      AlarmActions: 
+        - arn:aws:sns:ap-northeast-1:302263062504:aws-study
+
+  #WAFをALBに設定
+  MyWAF:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      Name: WebACL
+      Scope: REGIONAL
+      VisibilityConfig:
+        MetricName: WAFmetric
+        SampledRequestsEnabled: true 
+        CloudWatchMetricsEnabled: true
+      DefaultAction:
+        Allow: {}
+      Rules:
+        - Name: Coreruleset
+          Priority: 0
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesCommonRuleSet
+          OverrideAction:
+            None: {}
+          VisibilityConfig:
+            MetricName: corerule
+            SampledRequestsEnabled: true 
+            CloudWatchMetricsEnabled: true
+     #ResourceArn に指定できるのは以下のリソースのみ
+       #ALB（Application Load Balancer）,API Gateway,#AppSync GraphQL API
+     #LoadBalancerArn は ALB の実際の ARN を返す属性名
+  MyWAFAssociation:
+    Type: AWS::WAFv2::WebACLAssociation
+    Properties:
+      ResourceArn: !GetAtt MyELB.LoadBalancerArn
+      WebACLArn: !GetAtt MyWAF.Arn
+
+  #WAFのトラフィックをCloudWatchLogと連携
+  MyWAFLogConfig:
+    Type: AWS::WAFv2::LoggingConfiguration
+    Properties:
+      ResourceArn: !GetAtt MyWAF.Arn
+      LogDestinationConfigs:
+        - !GetAtt MyWAFLogGroup.Arn
+  
+  MyWAFLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: aws-waf-logs-aws-study
+      RetentionInDays: 14
+      Tags:
+        - Key: Name
+          Value: MyWAF-Log
