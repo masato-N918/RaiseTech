@@ -1,3 +1,5 @@
+variable "alb_arn" {}
+
 resource "aws_wafv2_web_acl" "main_waf" {
   name  = "WebACL"
   scope = "REGIONAL"
