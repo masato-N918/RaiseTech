@@ -1,3 +1,8 @@
+variable "subnet_ids" {}
+variable "security_group_id" {}
+variable "target_instance_id" {}
+
+
 resource "aws_lb" "main_elb" {
   name               = "MyELB"
   internal           = false
