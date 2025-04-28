@@ -15,7 +15,11 @@ variable "instance_type" {
 }
 
 variable "key_name" {
-  description = "udemysample"
+  default = "udemysample"
+}
+
+variable "db_name" {
+  default = "awsstudy"
 }
 
 variable "db_username" {

@@ -1,6 +1,7 @@
 variable "subnet_ids" {}
 variable "db_username" {}
 variable "db_password" {}
+variable "db_name" {}
 variable "vpc_security_group_ids" {}
 
 resource "aws_db_subnet_group" "dbsubnetgroup" {
@@ -17,7 +18,7 @@ resource "aws_db_instance" "main_rds" {
   engine                 = "mysql"
   engine_version         = "8.0.41"
   instance_class         = "db.t4g.micro"
-  db_name                = "awsstudy"
+  db_name                = var.db_name
   username               = var.db_username
   password               = var.db_password
   db_subnet_group_name   = aws_db_subnet_group.dbsubnetgroup.name

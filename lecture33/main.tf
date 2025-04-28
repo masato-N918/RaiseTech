@@ -15,14 +15,16 @@ module "ec2" {
 
 module "rds" {
   source                 = "./modules/rds"
-  subnet_ids             = [module.vpc.public_subnet_1a_id, module.vpc.public_subnet_1c_id]
+  subnet_ids             = [module.vpc.public_subnet_1a_id,module.vpc.public_subnet_1c_id]
   vpc_security_group_ids = [module.vpc.rds_sg_id]
   db_username            = var.db_username
   db_password            = var.db_password
+  db_name                = var.db_name
 }
 
 module "alb" {
   source             = "./modules/alb"
+  vpc_id             = module.vpc.vpc_id
   subnet_ids         = [module.vpc.public_subnet_1a_id, module.vpc.public_subnet_1c_id]
   security_group_id  = module.vpc.ec2_sg_id
   target_instance_id = module.ec2.instance_id
