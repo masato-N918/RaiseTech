@@ -2,6 +2,7 @@ module "vpc" {
   source      = "./modules/vpc"
   vpc_cidr    = var.vpc_cidr
   pub_subnets = var.pub_subnets
+  pri_subnets = var.pri_subnets
 }
 
 module "ec2" {
@@ -26,7 +27,7 @@ module "alb" {
   source             = "./modules/alb"
   vpc_id             = module.vpc.vpc_id
   subnet_ids         = [module.vpc.public_subnet_1a_id, module.vpc.public_subnet_1c_id]
-  security_group_id  = module.vpc.ec2_sg_id
+  #security_group_id  = module.vpc.ec2_sg_id
   target_instance_id = module.ec2.instance_id
 }
 
