@@ -10,6 +10,14 @@ variable "pub_subnets" {
   }
 }
 
+variable "pri_subnets" {
+  type = map(string)
+  default = {
+    "1a" = "10.0.3.0/24"
+    "1c" = "10.0.4.0/24"
+  }
+}
+
 variable "instance_type" {
   default = "t2.micro"
 }
