@@ -33,7 +33,7 @@ variable "db_name" {
 variable "db_username" {
   default = "root"
 }
-
+# 直接記述しない。SSM？
 variable "db_password" {
   default = "rootroot"
 }
