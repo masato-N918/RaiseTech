@@ -1,5 +1,5 @@
 variable "subnet_ids" {}
-variable "db_username" {}
+variable "username" {}
 variable "db_password" {}
 variable "db_name" {}
 variable "vpc_security_group_ids" {}
@@ -19,7 +19,7 @@ resource "aws_db_instance" "main_rds" {
   engine_version         = "8.0.41"
   instance_class         = "db.t4g.micro"
   db_name                = var.db_name
-  username               = var.db_username
+  username               = var.username
   password               = var.db_password
   db_subnet_group_name   = aws_db_subnet_group.dbsubnetgroup.name
   vpc_security_group_ids = var.vpc_security_group_ids
