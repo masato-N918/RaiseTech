@@ -1,5 +1,3 @@
-variable "instance_id" {}
-
 resource "aws_cloudwatch_metric_alarm" "cpu_alarm" {
   alarm_name          = "aws-study-ec2-utilization-alarm"
   comparison_operator = "GreaterThanThreshold"

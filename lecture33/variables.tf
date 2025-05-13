@@ -1,5 +1,5 @@
 variable "vpc_cidr" {
-  default = "10.0.0.0/16"
+  default     = "10.0.0.0/16"
   description = "cidr block for vpc"
 }
 
@@ -22,25 +22,6 @@ variable "pri_subnets" {
 }
 
 variable "instance_type" {
-  default = "t2.micro"
+  default     = "t2.micro"
   description = "ec2 instance type"
-}
-
-variable "key_name" {
-  default = "udemysample"
-  description = "name of the ec2 instance key"
-}
-
-variable "db_name" {
-  default = "awsstudy"
-  description = "name of the database instance"
-}
-
-variable "username" {
-  default = "root"
-  description = "username for the master database user"
-}
-# 直接記述しない。SSM？
-variable "db_password" {
-  default = "rootroot"
 }

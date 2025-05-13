@@ -1,9 +1,3 @@
-variable "subnet_ids" {}
-variable "username" {}
-variable "db_password" {}
-variable "db_name" {}
-variable "vpc_security_group_ids" {}
-
 resource "aws_db_subnet_group" "dbsubnetgroup" {
   name       = "mydbsubnetgroup"
   subnet_ids = var.subnet_ids

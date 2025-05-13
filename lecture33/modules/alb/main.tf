@@ -1,9 +1,3 @@
-variable "subnet_ids" {}
-variable "security_group_id" {}
-variable "target_instance_id" {}
-variable "vpc_id" {}
-
-
 resource "aws_lb" "main_elb" {
   name               = "MyELB"
   internal           = false
@@ -17,10 +11,10 @@ resource "aws_lb" "main_elb" {
 }
 
 resource "aws_lb_target_group" "elb_tg" {
-  name        = "MyELBTG"
-  port        = 80
-  protocol    = "HTTP"
-  vpc_id      = var.vpc_id
+  name     = "MyELBTG"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = var.vpc_id
 
   health_check {
     path                = "/"
@@ -51,8 +45,4 @@ resource "aws_lb_listener" "elb_listener" {
     type             = "forward"
     target_group_arn = aws_lb_target_group.elb_tg.arn
   }
-}
-
-output "alb_arn" {
-  value = aws_lb.main_elb.arn
 }

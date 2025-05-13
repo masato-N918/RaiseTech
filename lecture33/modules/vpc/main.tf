@@ -1,11 +1,3 @@
-variable "vpc_cidr" {}
-variable "pub_subnets" {
-  type = map(string)
-}
-variable "pri_subnets" {
-  type = map(string)
-}
-
 resource "aws_vpc" "main_vpc" {
   cidr_block           = var.vpc_cidr
   enable_dns_support   = true
@@ -101,90 +93,106 @@ resource "aws_route_table_association" "public_1c" {
   route_table_id = aws_route_table.pubsubRT.id
 }
 
+resource "aws_route_table_association" "private_1a" {
+  subnet_id      = aws_subnet.private_1a.id
+  route_table_id = aws_route_table.prisubRT.id
+}
+
+resource "aws_route_table_association" "private_1c" {
+  subnet_id      = aws_subnet.private_1c.id
+  route_table_id = aws_route_table.prisubRT.id
+}
+
 resource "aws_security_group" "ec2_sg" {
   name        = "MyEC2SG"
   description = "Allow SSH, HTTP, and custom port"
   vpc_id      = aws_vpc.main_vpc.id
-
-  ingress {
-    description = "SSH"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["143.189.176.201/32"]
-  }
-
-  ingress {
-    description = "HTTP"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 
   tags = {
     Name = "MyEC2SG"
   }
 }
 
+resource "aws_vpc_security_group_ingress_rule" "allow_ssh" {
+  security_group_id = aws_security_group.ec2_sg.id
+
+  ip_protocol = "tcp"
+  from_port   = 22
+  to_port     = 22
+  cidr_ipv4   = "143.189.176.201/32"
+}
+
+resource "aws_vpc_security_group_ingress_rule" "allow_http" {
+  security_group_id = aws_security_group.ec2_sg.id
+
+  ip_protocol = "tcp"
+  from_port   = 80
+  to_port     = 80
+  cidr_ipv4   = "0.0.0.0/0"
+}
+
+resource "aws_vpc_security_group_egress_rule" "allow_all" {
+  security_group_id = aws_security_group.ec2_sg.id
+
+  ip_protocol = "-1"
+  from_port   = 0
+  to_port     = 0
+  cidr_ipv4   = "0.0.0.0/0"
+}
+
+
 resource "aws_security_group" "rds_sg" {
   name        = "MyRDSSG"
   description = "Allow MySQL access from EC2 SG"
   vpc_id      = aws_vpc.main_vpc.id
-
-  ingress {
-    description     = "MySQL"
-    from_port       = 3306
-    to_port         = 3306
-    protocol        = "tcp"
-    security_groups = [aws_security_group.ec2_sg.id]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 
   tags = {
     Name = "MyRDSSG"
   }
 }
 
-output "vpc_id" {
-  value = aws_vpc.main_vpc.id
+resource "aws_vpc_security_group_ingress_rule" "allow_rds_from_ec2" {
+  security_group_id = aws_security_group.rds_sg.id
+  referenced_security_group_id = aws_security_group.ec2_sg.id
+
+  ip_protocol = "tcp"
+  from_port   = 3306
+  to_port     = 3306
 }
 
-output "public_subnet_1a_id" {
-  value = aws_subnet.public_1a.id
+resource "aws_vpc_security_group_egress_rule" "allow_all_from_rds" {
+  security_group_id = aws_security_group.rds_sg.id
+
+  ip_protocol = "-1"
+  from_port   = 0
+  to_port     = 0
+  cidr_ipv4   = "0.0.0.0/0"
 }
 
-output "public_subnet_1c_id" {
-  value = aws_subnet.public_1c.id
+resource "aws_security_group" "elb_sg" {
+  name        = "MyELBSG"
+  description = "Allow HTTP"
+  vpc_id      = aws_vpc.main_vpc.id
+
+  tags = {
+    Name = "MyELBSG"
+  }
 }
 
-output "private_subnet_1a_id" {
-  value = aws_subnet.private_1a.id
+resource "aws_vpc_security_group_ingress_rule" "allow_http_to_elb" {
+  security_group_id = aws_security_group.elb_sg.id
+
+  ip_protocol = "tcp"
+  from_port   = 80
+  to_port     = 80
+  cidr_ipv4   = "0.0.0.0/0"
 }
 
-output "private_subnet_1c_id" {
-  value = aws_subnet.private_1c.id
+resource "aws_vpc_security_group_egress_rule" "allow_all_from_elb" {
+  security_group_id = aws_security_group.elb_sg.id
+
+  ip_protocol = "-1"
+  from_port   = 0
+  to_port     = 0
+  cidr_ipv4   = "0.0.0.0/0"
 }
-
-output "ec2_sg_id" {
-  value = aws_security_group.ec2_sg.id
-}
-
-output "rds_sg_id" {
-  value = aws_security_group.rds_sg.id
-}
-
-
