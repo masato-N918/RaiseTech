@@ -179,12 +179,12 @@ resource "aws_security_group" "elb_sg" {
   }
 }
 
-resource "aws_vpc_security_group_ingress_rule" "allow_http_to_elb" {
+resource "aws_vpc_security_group_ingress_rule" "allow_https_to_elb" {
   security_group_id = aws_security_group.elb_sg.id
 
   ip_protocol = "tcp"
-  from_port   = 80
-  to_port     = 80
+  from_port   = 8080
+  to_port     = 8080
   cidr_ipv4   = "0.0.0.0/0"
 }
 
