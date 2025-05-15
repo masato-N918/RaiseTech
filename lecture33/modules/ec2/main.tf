@@ -6,7 +6,7 @@ resource "aws_instance" "app_server" {
   ami                    = data.aws_ssm_parameter.amzn2_latest.value
   instance_type          = var.instance_type
   subnet_id              = var.subnet_id
-  vpc_security_group_ids = var.security_group_id
+  vpc_security_group_ids = var.security_group_ids
   key_name               = var.key_name
 
   tags = {

@@ -1,4 +1,4 @@
-resource "aws_db_subnet_group" "dbsubnetgroup" {
+resource "aws_db_subnet_group" "main" {
   name       = "mydbsubnetgroup"
   subnet_ids = var.subnet_ids
 
@@ -7,7 +7,7 @@ resource "aws_db_subnet_group" "dbsubnetgroup" {
   }
 }
 
-resource "aws_db_instance" "main_rds" {
+resource "aws_db_instance" "main" {
   allocated_storage      = 20
   engine                 = "mysql"
   engine_version         = "8.0.41"
@@ -15,7 +15,7 @@ resource "aws_db_instance" "main_rds" {
   db_name                = var.db_name
   username               = var.username
   password               = var.db_password
-  db_subnet_group_name   = aws_db_subnet_group.dbsubnetgroup.name
+  db_subnet_group_name   = aws_db_subnet_group.main.name
   vpc_security_group_ids = var.vpc_security_group_ids
   skip_final_snapshot    = true
 
