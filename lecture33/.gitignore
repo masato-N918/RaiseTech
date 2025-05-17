@@ -1,2 +1,2 @@
 .terraform/
-src.tf
+.tfvars
