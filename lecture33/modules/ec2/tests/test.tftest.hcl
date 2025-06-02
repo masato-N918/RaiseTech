@@ -1,8 +1,8 @@
 variables {
-  instance_type          = "t2.micro"
-  subnet_id              = "subnet-123456789"
+  instance_type      = "t2.micro"
+  key_name           = "123456789"
   security_group_ids = ["sg-123456789"]
-  key_name               = "123456789"
+  subnet_id          = "subnet-123456789"
 }
 
 run "instance_type_check" {
