@@ -7,7 +7,6 @@ module "vpc" {
 
 module "ec2" {
   source             = "./modules/ec2"
-  vpc_id             = module.vpc.vpc_id
   subnet_id          = module.vpc.public_subnet_1a_id
   security_group_ids = [module.vpc.ec2_sg_id]
   instance_type      = var.instance_type

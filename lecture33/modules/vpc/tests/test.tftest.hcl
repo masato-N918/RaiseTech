@@ -126,21 +126,21 @@ run "vpc_sg_egress_rule_https_to_elb" {
 }
 
 run "vpc_cidr_block" {
-  
+
   command = plan
 
   assert {
-    condition = aws_vpc.main.cidr_block == "10.0.0.0/16"
+    condition     = aws_vpc.main.cidr_block == "10.0.0.0/16"
     error_message = "VPC CIDR block did not match expected"
   }
 }
 
 run "igw_check" {
-  
+
   command = plan
 
   assert {
-    condition = aws_internet_gateway.main.tags.Name == "MyIGW"
+    condition     = aws_internet_gateway.main.tags.Name == "MyIGW"
     error_message = "Internet Gateway not created"
   }
 }

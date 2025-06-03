@@ -17,9 +17,3 @@ variable "subnet_id" {
   type        = string
   description = "subnet ID to launch EC2 instance in"
 }
-
-variable "vpc_id" {
-  type        = string
-  description = "ID of the VPC"
-}
-
