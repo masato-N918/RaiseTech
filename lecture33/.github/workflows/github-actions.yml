@@ -6,12 +6,12 @@ on:
     paths:
       - 'lecture33/**.tf'
       - 'lecture33/modules/**tftest.hcl'
-      - '.github/workflows/*.yaml'
+      - 'lecture33/.github/workflows/*.yaml'
   pull_request:
     paths:
       - 'lecture33/**.tf'
       - 'lecture33/modules/**tftest.hcl'
-      - '.github/workflows/*.yaml'
+      - 'lecture33/.github/workflows/*.yaml'
 
 jobs:
   terraform:
