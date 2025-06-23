@@ -3,7 +3,6 @@ run-name: Deploy by Terraform
 
 on:
   push:
-    branches: [ main ]
     paths:
       - 'lecture33/**.tf'
       - 'lecture33/modules/**tftest.hcl'
