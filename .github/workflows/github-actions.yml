@@ -6,13 +6,13 @@ on:
     branches:
       - main
     paths:
-      - 'lecture33/**.tf'
-      - 'lecture33/modules/**tftest.hcl'
+      - 'lecture33/**/*.tf'
+      - 'lecture33/modules/**/*tftest.hcl'
       - '.github/workflows/*.yaml'
   pull_request:
     paths:
-      - 'lecture33/**.tf'
-      - 'lecture33/modules/**tftest.hcl'
+      - 'lecture33/**/*.tf'
+      - 'lecture33/modules/**/*tftest.hcl'
       - '.github/workflows/*.yaml'
 
 jobs:
