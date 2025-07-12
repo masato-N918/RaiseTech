@@ -8,12 +8,12 @@ on:
     paths:
       - 'lecture33/**/*.tf'
       - 'lecture33/modules/**/*tftest.hcl'
-      - '.github/workflows/*.yaml'
+      - '.github/workflows/*.yml'
   pull_request:
     paths:
       - 'lecture33/**/*.tf'
       - 'lecture33/modules/**/*tftest.hcl'
-      - '.github/workflows/*.yaml'
+      - '.github/workflows/*.yml'
 
 jobs:
   terraform_deploy:
