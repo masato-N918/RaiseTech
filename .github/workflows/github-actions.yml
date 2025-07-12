@@ -1,0 +1,48 @@
+name: Terraform CI/CD
+run-name: Deploy by Terraform
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'lecture33/**.tf'
+      - 'lecture33/modules/**tftest.hcl'
+      - '.github/workflows/*.yaml'
+  pull_request:
+    paths:
+      - 'lecture33/**.tf'
+      - 'lecture33/modules/**tftest.hcl'
+      - '.github/workflows/*.yaml'
+
+jobs:
+  terraform_deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ap-northeast-1
+    
+    defaults:
+      run:
+        working-directory: lecture33
+  
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: init
+        run: terraform init
+
+      - name: Validate
+        run: terraform validate
+
+      - name: plan
+        run: terraform plan
+
+      - name: apply
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: terraform apply -auto-approve
