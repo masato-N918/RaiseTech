@@ -30,7 +30,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: lecture33
+        working-directory: ./lecture33
   
     steps:
       - uses: actions/checkout@v4
