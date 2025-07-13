@@ -23,7 +23,11 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: ap-northeast-1
-    
+      TF_VAR_db_name: ${{secrets.db_name}}
+      TF_VAR_db_password: ${{secrets.db_password}}
+      TF_VAR_key_name: ${{secrets/key_name}}
+      TF_VAR_username: ${{secrets.username}}
+
     defaults:
       run:
         working-directory: lecture33
