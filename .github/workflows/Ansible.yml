@@ -1,0 +1,29 @@
+name: Ansible_lecture42
+run-name: install Java
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/Ansible.yml'
+  pull_request:
+    paths:
+      - '.github/workflows/Ansible.yml'
+
+jobs:  
+  Ansible:
+    runs-on: ubuntu-latest
+
+    # env:
+    #   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #   AWS_DEFAULT_REGION: ap-northeast-1
+
+    # defaults:
+    #   run:
+    #     working-directory: ./Ansible
+  
+    steps:
+      - uses: actions/checkout@v4
+

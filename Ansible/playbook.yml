@@ -1,0 +1,9 @@
+- name: install Java
+  hosts: myhosts
+  become: true
+
+  tasks:
+   - name: install java-11-amazon-corretto-devel
+     ansible.builtin.dnf:
+       name: java-11-amazon-corretto-devel
+       state: present
