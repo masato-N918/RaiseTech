@@ -7,23 +7,71 @@ on:
       - main
     paths:
       - '.github/workflows/Ansible.yml'
+      - 'Ansible/playbook.yml'
+      - 'Ansible/inventory.ini'
   pull_request:
     paths:
       - '.github/workflows/Ansible.yml'
+      - 'Ansible/playbook.yml'
+      - 'Ansible/inventory.ini'
 
 jobs:  
-  Ansible:
+  Ansible_java_test:
     runs-on: ubuntu-latest
 
-    # env:
-    #   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-    #   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    #   AWS_DEFAULT_REGION: ap-northeast-1
+    defaults:
+      run:
+        working-directory: ./Ansible
 
-    # defaults:
-    #   run:
-    #     working-directory: ./Ansible
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ap-northeast-1
+      ANSIBLE_HOST_KEY_CHECKING: "False"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Ansible
+        run: sudo apt install ansible -y
+
+      - name: Set up SSH key
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > private_key.pem
+          chmod 600 private_key.pem
+
+      - name: Syntax check
+        run: ansible-playbook --syntax-check -i inventory.ini playbook.yml 
+
+      - name: Dry run
+        run: ansible-playbook --check -i inventory.ini playbook.yml
+
+
+
+  Ansible_java_apply:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    defaults:
+      run:
+        working-directory: ./Ansible
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ap-northeast-1
+      ANSIBLE_HOST_KEY_CHECKING: "False"
   
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install Ansible
+        run: sudo apt install ansible -y
+
+      - name: Set up SSH key
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > private_key.pem
+          chmod 600 private_key.pem
+
+      - name: Apply
+        run: ansible-playbook -i inventory.ini playbook.yml
