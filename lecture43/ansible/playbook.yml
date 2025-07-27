@@ -1,0 +1,15 @@
+- name: install&enable nginx
+  hosts: myhosts
+  become: true
+
+  tasks:
+   - name: install nginx
+     ansible.builtin.dnf:
+       name: nginx
+       state: present
+
+   - name: enable nginx
+     ansible.builtin.systemd:
+       name: nginx
+       state: started
+       enabled: yes
