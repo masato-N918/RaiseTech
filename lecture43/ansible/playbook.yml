@@ -13,3 +13,4 @@
        name: nginx
        state: started
        enabled: yes
+     when: ansible_check_mode == false
