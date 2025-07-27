@@ -18,6 +18,7 @@ on:
       - '.github/workflows/terraform_ansible.yml'
       - 'lecture43/ansible/playbook.yml'
       - 'lecture43/ansible/inventory.tpl'
+  workflow_dispatch:
 
 jobs:
   Terraform_Ansible_deploy:
