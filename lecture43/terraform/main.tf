@@ -88,8 +88,8 @@ resource "aws_vpc_security_group_ingress_rule" "allow_http" {
   security_group_id = aws_security_group.app_server.id
 
   ip_protocol = "tcp"
-  from_port   = 80
-  to_port     = 80
+  from_port   = 8080
+  to_port     = 8080
   cidr_ipv4   = "0.0.0.0/0"
 }
 
