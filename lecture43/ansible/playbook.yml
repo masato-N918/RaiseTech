@@ -26,7 +26,7 @@
 
    - name: create systemd service
      ansible.builtin.copy:
-        dest: /etc/systemd/system/myapp.service
+        dest: /etc/systemd/system/demo-0.0.1-SNAPSHOT.service
         mode: '0644'
         content: |
           [Unit]
@@ -44,9 +44,9 @@
           [Install]
           WantedBy=multi-user.target
 
-   - name: start myapp
+   - name: start SprinBoot
      ansible.builtin.systemd:
-        name: myapp
+        name: demo-0.0.1-SNAPSHOT
         state: started
         enabled: yes
         daemon_reload: yes
