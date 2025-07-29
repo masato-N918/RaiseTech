@@ -44,9 +44,12 @@
           [Install]
           WantedBy=multi-user.target
 
+   - name: Reload systemd daemon
+     ansible.builtin.systemd:
+        daemon_reload: yes
+
    - name: start SprinBoot
      ansible.builtin.systemd:
         name: demo-0.0.1-SNAPSHOT
         state: started
         enabled: yes
-        daemon_reload: yes
