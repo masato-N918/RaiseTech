@@ -1,16 +1,71 @@
-- name: install&enable nginx
+- name: install Java-21 & Run SpringBoot
   hosts: myhosts
   become: true
 
   tasks:
-   - name: install nginx
+   - name: install java-21-amazon-corretto-devel
      ansible.builtin.dnf:
-       name: nginx
+       name: java-21-amazon-corretto-devel
        state: present
 
-   - name: enable nginx
+   - name: make dir
+     ansible.builtin.file:
+        path: /app
+        state: directory
+        mode: '0644'
+ 
+   - name: copy source code
+     ansible.builtin.copy:
+        src: ../demo/
+        dest: /tmp/demo/
+        mode: '0644'
+
+   - name: build Spring Boot jar with Gradle
+     ansible.builtin.command: ./gradlew bootJar
+     args:
+        chdir: /tmp/demo
+     environment:
+        JAVA_HOME: /usr/lib/jvm/java-21-amazon-corretto
+
+   - name: find built jar
+     ansible.builtin.find:
+        paths: /tmp/demo/build/libs
+        patterns: "demo*.jar"
+     register: jar_files
+
+   - name: copy built jar to app directory
+     ansible.builtin.copy:
+        src: "{{ jar_files.files[0].path }}"
+        dest: /app/demo.jar
+        remote_src: yes
+        mode: '0644'
+
+   - name: create systemd service
+     ansible.builtin.copy:
+        dest: /etc/systemd/system/myapp.service
+        mode: '0644'
+        content: |
+          [Unit]
+          Description=Spring Boot Application myapp
+          After=network.target
+
+          [Service]
+          User=ec2-user
+          WorkingDirectory=/app
+          ExecStart=/usr/bin/java -jar /app/demo.jar
+          SuccessExitStatus=143
+          Restart=on-failure
+          RestartSec=10
+
+          [Install]
+          WantedBy=multi-user.target
+ 
+   - name: reload systemd
      ansible.builtin.systemd:
-       name: nginx
-       state: started
-       enabled: yes
-     when: ansible_check_mode == false
+        daemon_reload: yes
+
+   - name: start myapp
+     ansible.builtin.systemd:
+        name: myapp
+        state: started
+        enabled: yes
