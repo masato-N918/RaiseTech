@@ -13,7 +13,13 @@
         path: /app
         state: directory
         mode: '0644'
- 
+        
+   - name: ensure /tmp/demo exists
+     ansible.builtin.file:
+        path: /tmp/demo
+        state: directory
+        mode: '0644'
+
    - name: copy source code
      ansible.builtin.copy:
         src: ../demo/
