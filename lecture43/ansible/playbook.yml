@@ -12,19 +12,19 @@
      ansible.builtin.file:
         path: /app
         state: directory
-        mode: '0644'
+        mode: '0755'
 
    - name: ensure /tmp/demo exists
      ansible.builtin.file:
         path: /tmp/demo
         state: directory
-        mode: '0644'
+        mode: '0755'
 
    - name: copy source code
-     ansible.builtin.copy:
+     ansible.posix.synchronize:
         src: /home/runner/work/RaiseTech/RaiseTech/lecture43/demo/
         dest: /tmp/demo
-        mode: '0755'
+        recursive: yes
   
    - name: list /tmp/demo content
      ansible.builtin.command: ls -la /tmp/demo
