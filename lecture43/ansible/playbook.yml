@@ -53,3 +53,4 @@
         name: demo-0.0.1-SNAPSHOT
         state: started
         enabled: yes
+        when: not ansible_check_mode

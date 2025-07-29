@@ -80,9 +80,9 @@ jobs:
         run: ansible-playbook --syntax-check -i inventory.ini playbook.yml 
         working-directory: lecture43/ansible
 
-      # - name: Dry run
-      #   run: ansible-playbook --check -i inventory.ini playbook.yml
-      #   working-directory: lecture43/ansible
+      - name: Dry run
+        run: ansible-playbook --check -i inventory.ini playbook.yml
+        working-directory: lecture43/ansible
 
       - name: Apply
         # if: github.event_name == 'push' && github.ref == 'refs/heads/main'
