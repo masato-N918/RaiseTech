@@ -1,5 +1,5 @@
 name: Terraform_Ansible
-run-name: Deploy by Terraform & nginx by Ansible
+run-name: Deploy by Terraform & SpringBoot by Ansible
 
 on:
   push:
