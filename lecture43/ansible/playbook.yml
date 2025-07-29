@@ -16,7 +16,7 @@
 
    - name: copy source code
      ansible.builtin.copy:
-        src: /home/runner/work/RaiseTech/RaiseTech/lecture43/demo/build/libs/demo-0.0.1-SNAPSHOT.jar
+        src: ../demo/build/libs/demo-0.0.1-SNAPSHOT.jar
         dest: /app/demo-0.0.1-SNAPSHOT.jar
         mode: '0644'
 
